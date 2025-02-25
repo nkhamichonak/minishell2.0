@@ -6,18 +6,20 @@
 /*   By: pkhvorov <pkhvorov@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/22 14:55:08 by pkhvorov          #+#    #+#             */
-/*   Updated: 2025/02/13 14:56:00 by pkhvorov         ###   ########.fr       */
+/*   Updated: 2025/02/17 16:35:47 by pkhvorov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "execution.h"
 
-int ft_buildin_env(t_executer *exec) //(char **env, char **args)
+static int env_print(t_executer *exec)
 {
 	int	i;
 	
-	// if (args != NULL && args[1] != NULL)
-	// 	return (error_message());
+	dup2(exec->in_fd, STDIN_FILENO);
+	dup2(exec->out_fd, STDOUT_FILENO);
+	close(exec->in_fd);
+	close(exec->out_fd);
 	i = 0;
 	if (exec->env == NULL)
 		return (EXIT_FAILURE);
@@ -26,5 +28,21 @@ int ft_buildin_env(t_executer *exec) //(char **env, char **args)
 		ft_putendl_fd(exec->env[i], STDOUT_FILENO);
 		i++;		
 	}
-	return (EXIT_SUCCESS);
+	exit (EXIT_SUCCESS);
+}
+
+int ft_buildin_env(t_executer *exec)
+{
+	pid_t		pid;
+	int			status;
+	
+	pid = fork();
+	if (pid == -1)
+		return (EXIT_FAILURE);
+	else if (pid == 0)
+		env_print(exec);
+	waitpid(pid, &status, 0);
+	if (WIFEXITED(status))
+		return (WEXITSTATUS(status));
+	return (EXIT_FAILURE);
 }

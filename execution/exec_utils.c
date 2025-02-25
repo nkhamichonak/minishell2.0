@@ -6,7 +6,7 @@
 /*   By: pkhvorov <pkhvorov@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/10 15:08:16 by pkhvorov          #+#    #+#             */
-/*   Updated: 2025/02/13 15:06:48 by pkhvorov         ###   ########.fr       */
+/*   Updated: 2025/02/18 17:00:21 by pkhvorov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,26 +62,7 @@ char	*find_cmd(char *cmd, t_executer *exec)
 	return (NULL);
 }
 
-static int	fn_builtins(t_executer *exec, t_ast_node *node)
-{
-	if (ft_strcmp(node->cmd->cmd_name, "exit") == 0)
-		return (ft_buildin_exit(node->cmd->args));
-	else if (ft_strcmp(node->cmd->cmd_name, "pwd") == 0)
-		return (ft_buildin_pwd());
-	else if (ft_strcmp(node->cmd->cmd_name, "export") == 0)
-		return (ft_buildin_export(exec, node->cmd->args));
-	else if (ft_strcmp(node->cmd->cmd_name, "cd") == 0)
-		return (ft_buildin_cd(exec, node->cmd->args));
-	else if (ft_strcmp(node->cmd->cmd_name, "env") == 0)
-		return (ft_buildin_env(exec));
-	else if (ft_strcmp(node->cmd->cmd_name, "unset") == 0)
-		return (ft_buildin_unset(exec, node->cmd->args));
-	else if (ft_strcmp(node->cmd->cmd_name, "echo") == 0)
-		return (ft_buildin_echo(node->cmd->args));
-	return (-1);
-}
-
-void	execve_cmd(t_executer *exec, t_ast_node *node)
+int	execve_cmd(t_executer *exec, t_ast_node *node)
 {
 	char	*cmd;
 	int	 prc_id;
@@ -89,26 +70,22 @@ void	execve_cmd(t_executer *exec, t_ast_node *node)
 
 	prc_id = fork();
 	if (prc_id == -1)
-		return;
+		return (EXIT_FAILURE);
 	if (prc_id == 0)
 	{
 		dup2(exec->in_fd, STDIN_FILENO);
 		dup2(exec->out_fd, STDOUT_FILENO);
 		close(exec->in_fd);
 		close(exec->out_fd);
-		if (fn_builtins(exec, node) == -1)
-		{
 		cmd = find_cmd(node->cmd->cmd_name, exec);
 		if (!cmd)
-			return;
+			return (EXIT_FAILURE);
 		execve(cmd, node->cmd->args, exec->env);
-		}
-		// cmd = find_cmd(node->cmd->cmd_name, exec);
-		// if (!cmd)
-		// 	return;
-		// execve(cmd, node->cmd->args, exec->env);
 	}
 	waitpid(prc_id, &status, 0);
+	if (WIFEXITED(status))
+		return (WEXITSTATUS(status));
+	return (EXIT_FAILURE);
 }
 
 int	ft_exec_init(t_executer *exec)

@@ -6,7 +6,7 @@
 /*   By: pkhvorov <pkhvorov@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 15:57:59 by pkhvorov          #+#    #+#             */
-/*   Updated: 2025/02/13 15:29:03 by pkhvorov         ###   ########.fr       */
+/*   Updated: 2025/02/18 15:39:02 by pkhvorov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 
 static int	check_limit(int sign, unsigned long long number)
 {
+	
 	if ((sign == 1 && number > LLONG_MAX) \
 		|| (sign == -1 && number > -(unsigned long long)LLONG_MIN))
 		return (1);
@@ -44,7 +45,10 @@ long long	ft_atoll_with_check(const char *str)
 		number = number * 10;
 		number = number + str[i] - 48;
 		if (check_limit(sign, number) == 1)
-			return (1); // Place for error handle
+			{
+			errno = ERANGE;
+			return (errno); 
+			}
 		i++;
 	}
 	return (sign * number);
@@ -66,7 +70,10 @@ int get_exit_code(char *str)
 	while (str[i] != '\0')
 	{
 		if (ft_isdigit(str[i]) == 0) //bash: line 1: exit: 922t: numeric argument required
-			return (0);
+			{
+			errno = ERANGE;
+			return (errno); 
+			}
 		i++;
 	}
 	num = ft_atoll_with_check(str);
@@ -77,14 +84,21 @@ int ft_buildin_exit(char **args)
 {
 	int exit_code;
 	
-	if(args[2] != NULL)
-		return (0); //worng number of args
-	else if (args == NULL || args[1] == NULL)
-		exit_code = 0; //= global exit code
-	else
+	ft_putendl_fd("exit", 1);
+	if (args == NULL || args[1] == NULL)
+		return (g_exit_code);
+	else if(args[2] != NULL)
 	{
-		exit_code = get_exit_code(args[1]);
+		ft_putendl_fd("minishell: exit: too many arguments", 2);
+		return (EXIT_FAILURE);
 	}
-	exit(exit_code);
-	return(2);
+	exit_code = get_exit_code(args[1]);
+	if (errno == ERANGE)
+	{
+		errno = 0;
+		// printf("minishell: exit: %s: numeric argument required\n", args[1]);
+		ft_putendl_fd("minishell: exit: numeric argument required", 2);
+		return (2);
+	}
+	return(exit_code);
 }

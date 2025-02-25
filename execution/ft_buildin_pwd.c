@@ -6,31 +6,31 @@
 /*   By: pkhvorov <pkhvorov@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/22 14:40:12 by pkhvorov          #+#    #+#             */
-/*   Updated: 2025/02/11 15:40:45 by pkhvorov         ###   ########.fr       */
+/*   Updated: 2025/02/17 16:41:43 by pkhvorov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "execution.h"
 
-int ft_buildin_pwd() //(char **args)
+int ft_buildin_pwd(t_executer *exec)
 {
-	char	*buffer;
-	char	*cwd;
+	pid_t	pid;
+	int		status;
 
-	// if (args != NULL && args[1] != NULL)
-	// 	return (error_message());
-	buffer = NULL;
-	// if (struct->pwd != NULL)
-	// {
-	// 	ft_putendl_fd(struct->pwd, STDOUT_FILENO);
-	// 	return(EXIT_SUCCESS);
-	// }
-	cwd = getcwd(buffer, PATH_MAX);
-	if (cwd != NULL)
+	pid = fork();
+	if (pid == -1)
+		return (EXIT_FAILURE);
+	else if (pid == 0)
 	{
-		ft_putendl_fd(cwd, STDOUT_FILENO);
-		return(EXIT_SUCCESS);
+		dup2(exec->in_fd, STDIN_FILENO);
+		dup2(exec->out_fd, STDOUT_FILENO);
+		close(exec->in_fd);
+		close(exec->out_fd);
+		ft_putendl_fd(exec->wd, 1);
+		exit (EXIT_SUCCESS);
 	}
-	// error_message();
-	return(EXIT_FAILURE);
+	waitpid(pid, &status, 0);
+	if (WIFEXITED(status))
+		return (WEXITSTATUS(status));
+	return (EXIT_FAILURE);
 }

@@ -6,7 +6,7 @@
 /*   By: pkhvorov <pkhvorov@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/29 19:37:23 by natallia          #+#    #+#             */
-/*   Updated: 2025/02/11 16:29:46 by pkhvorov         ###   ########.fr       */
+/*   Updated: 2025/02/18 16:09:44 by pkhvorov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,7 @@ t_mshell_phase	mshell_readline(t_mshell *mshell);
 t_mshell_phase	mshell_lexer(t_mshell *mshell);
 t_mshell_phase	mshell_parser(t_mshell *mshell);
 t_mshell_phase	mshell_cleanup(t_mshell *mshell);
+t_mshell_phase	mshell_execution(t_mshell *mshell);
 
 // utils
 char			**get_envp_copy(char **envp);

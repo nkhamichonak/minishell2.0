@@ -6,7 +6,7 @@
 /*   By: pkhvorov <pkhvorov@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/10 15:14:53 by pkhvorov          #+#    #+#             */
-/*   Updated: 2025/02/13 15:16:00 by pkhvorov         ###   ########.fr       */
+/*   Updated: 2025/02/21 13:31:20 by pkhvorov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,8 @@
 # include <errno.h>
 # include <fcntl.h>
 
+extern int	g_exit_code;
+
 typedef struct s_executer
 {
 	t_ast_node	*ast;
@@ -40,8 +42,9 @@ typedef struct s_executer
 }	t_executer;
 
 void	print_darray(char **array);
-
-void	execve_cmd(t_executer *exec, t_ast_node *node);
+int		ft_redirection(t_executer *exec, t_ast_node *node);
+int		ft_redirection_heredoc(t_executer *exec, t_ast_node *node);
+int		execve_cmd(t_executer *exec, t_ast_node *node);
 
 int	    init_env(t_executer *exec, char **env);
 void	set_bin_paths(t_executer *exec, char **env);
@@ -53,11 +56,11 @@ int		ft_execution(t_executer *exec, t_ast_node *node);
 int		ft_exec_recursive(t_executer *exec, t_ast_node *node);
 
 int 	ft_buildin_cd(t_executer *exec, char **args);
-int		ft_buildin_echo(char **args);
+int		ft_buildin_echo(t_executer *exec, char **args);
 int	    ft_buildin_env(t_executer *exec);
 int 	ft_buildin_exit(char **args);
 int		ft_buildin_export(t_executer *exec, char **args);
-int	    ft_buildin_pwd();
+int	    ft_buildin_pwd(t_executer *exec);
 int		ft_buildin_unset(t_executer *exec, char **args);
 
 void	free_ptr(void *ptr);

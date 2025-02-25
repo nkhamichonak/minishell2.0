@@ -6,7 +6,7 @@
 /*   By: pkhvorov <pkhvorov@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/22 15:26:28 by pkhvorov          #+#    #+#             */
-/*   Updated: 2025/02/11 15:40:34 by pkhvorov         ###   ########.fr       */
+/*   Updated: 2025/02/17 16:30:24 by pkhvorov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,8 +26,13 @@ static int is_n_key(char *arg)
 	return (0);
 }
 
-static void	echo_print(char **args, int n_key, int i)
+static void	echo_print(t_executer *exec, char **args, int n_key, int i)
 {
+	dup2(exec->in_fd, STDIN_FILENO);
+	dup2(exec->out_fd, STDOUT_FILENO);
+	close(exec->in_fd);
+	close(exec->out_fd);
+	
 	if (args[i] == NULL)
 	{
 		if (n_key == 0)
@@ -43,12 +48,15 @@ static void	echo_print(char **args, int n_key, int i)
 			ft_putchar_fd('\n', STDOUT_FILENO);
 		i++;
 	}
+	exit (EXIT_SUCCESS);
 }
 
-int	ft_buildin_echo(char **args)
+int	ft_buildin_echo(t_executer *exec, char **args)
 {
-	int	i;
-	int	n_key;
+	int		i;
+	int		n_key;
+	pid_t	pid;
+	int		status;
 
 	i = 1;
 	n_key = 0;
@@ -57,6 +65,13 @@ int	ft_buildin_echo(char **args)
 		n_key = 1;
 		i++;
 	}
-	echo_print(args, n_key, i);
-	return(EXIT_SUCCESS);
+	pid = fork();
+	if (pid == -1)
+		return (EXIT_FAILURE);
+	else if (pid == 0)
+		echo_print(exec, args, n_key, i);
+	waitpid(pid, &status, 0);
+	if (WIFEXITED(status))
+		return (WEXITSTATUS(status));
+	return (EXIT_FAILURE);
 }

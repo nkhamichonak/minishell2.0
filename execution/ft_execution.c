@@ -6,34 +6,42 @@
 /*   By: pkhvorov <pkhvorov@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/07 15:02:50 by pkhvorov          #+#    #+#             */
-/*   Updated: 2025/02/13 15:48:09 by pkhvorov         ###   ########.fr       */
+/*   Updated: 2025/02/25 14:36:44 by pkhvorov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "execution.h"
 
-int	ft_exec_cmd(t_executer *exec, t_ast_node *node)
+static int	ft_builtins(t_executer *exec, t_ast_node *node)
 {
-	int		fd_in;
-	int		fd_out;
+	if (ft_strcmp(node->cmd->cmd_name, "exit") == 0)
+		return (ft_buildin_exit(node->cmd->args));
+	else if (ft_strcmp(node->cmd->cmd_name, "pwd") == 0)
+		return (ft_buildin_pwd(exec));
+	else if (ft_strcmp(node->cmd->cmd_name, "export") == 0)
+		return (ft_buildin_export(exec, node->cmd->args));
+	else if (ft_strcmp(node->cmd->cmd_name, "cd") == 0)
+		return (ft_buildin_cd(exec, node->cmd->args));
+	else if (ft_strcmp(node->cmd->cmd_name, "env") == 0)
+		return (ft_buildin_env(exec));
+	else if (ft_strcmp(node->cmd->cmd_name, "unset") == 0)
+		return (ft_buildin_unset(exec, node->cmd->args));
+	else if (ft_strcmp(node->cmd->cmd_name, "echo") == 0)
+		return (ft_buildin_echo(exec, node->cmd->args));
+	return (-1);
+}
+
+int	ft_exec_cmd_or_buildin(t_executer *exec, t_ast_node *node)
+{
+	int		buildin;
 
 	if (node->cmd->redirects != NULL)
+		ft_redirection(exec, node);
+	buildin = ft_builtins(exec, node);
+	if (buildin != -1)
 	{
-		if (node->cmd->redirects->redir_type == 9)
-		{
-			fd_out = open(node->cmd->redirects->filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-			close(exec->out_fd);
-			exec->out_fd = fd_out;
-		}
-		if (node->cmd->redirects->redir_type == 8)
-		{
-			fd_in = open(node->cmd->redirects->filename, O_RDONLY);
-			close(exec->in_fd);
-			exec->in_fd = fd_in;
-		}
+		return (buildin);
 	}
-	if (ft_strcmp(node->cmd->cmd_name, "export") == 0)
-		return (ft_buildin_export(exec, node->cmd->args));
 	execve_cmd(exec, node);
 	close(exec->out_fd);
 	exec->out_fd = dup(STDOUT_FILENO);
@@ -42,23 +50,49 @@ int	ft_exec_cmd(t_executer *exec, t_ast_node *node)
 	return (0);
 }
 
+int	ft_exec_and(t_executer *exec, t_ast_node *node)
+{
+	int	res;
+
+	res = ft_exec_recursive(exec, node->left);
+	if (errno != 0)
+		return (res);
+	res = ft_exec_recursive(exec, node->right);
+	if (res == 0)
+		return (ft_exec_recursive(exec, node->right));
+	return (res);
+}
+
+int	ft_exec_or(t_executer *exec, t_ast_node *node)
+{
+	exec->status = ft_exec_recursive(exec, node->left);
+	if (!exec->status)
+		return (ft_exec_recursive(exec, node->right));
+	return (exec->status);
+}
+
 int	ft_execution(t_executer *exec, t_ast_node *node)
 {
 	if (node == NULL)
-		return (-1);
+		return (EXIT_SUCCESS);
 	exec->ast = node;
 	ft_exec_recursive(exec, node);
-	return (0);
+	exec->ast = NULL;
+	return (exec->status);
 }
 
 int	ft_exec_recursive(t_executer *exec, t_ast_node *node)
 {
-
-	if (node == NULL)
-		return (-1);
 	if (node->type == NODE_PIPE)
 		ft_exec_pipe(exec, node);
 	else if (node->type == NODE_COMMAND)
-		ft_exec_cmd(exec, node);
+		ft_exec_cmd_or_buildin(exec, node);
+	else if (node->type == NODE_AND)
+		ft_exec_and(exec, node);
+	else if (node->type == NODE_OR)
+		ft_exec_or(exec, node);
 	return (0);
 }
+
+//mkdir test && cd test
+//cd test999 || echo WRONG
