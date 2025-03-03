@@ -6,7 +6,7 @@
 /*   By: pkhvorov <pkhvorov@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/10 15:08:16 by pkhvorov          #+#    #+#             */
-/*   Updated: 2025/03/03 14:18:56 by pkhvorov         ###   ########.fr       */
+/*   Updated: 2025/03/03 17:13:51 by pkhvorov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,8 +93,13 @@ int	ft_execve_cmd(t_executer *exec, t_ast_node *node)
 	return (EXIT_FAILURE);
 }
 
+char			**get_envp_copy(char **envp);
+
 int	ft_exec_init(t_executer *exec, char **envp)
 {
+	exec->env = get_envp_copy(envp);
+	if (exec->env == NULL)
+		return (EXIT_FAILURE);
 	if (init_wds(exec) == EXIT_FAILURE)
 		return (EXIT_FAILURE);
 	if (set_bin_paths(exec, envp) == EXIT_FAILURE)

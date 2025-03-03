@@ -1,3 +1,4 @@
+rm -r 1 2 3 4 5 6 7 8 test_folder
 echo TEST 1
 mkdir test_folder && cd test_folder
 echo TEST 1-1
