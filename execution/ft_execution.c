@@ -6,7 +6,7 @@
 /*   By: pkhvorov <pkhvorov@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/07 15:02:50 by pkhvorov          #+#    #+#             */
-/*   Updated: 2025/02/28 14:20:44 by pkhvorov         ###   ########.fr       */
+/*   Updated: 2025/03/03 14:23:15 by pkhvorov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -109,6 +109,13 @@ int ft_exec_group(t_executer *exec, t_ast_node *node)
 	return (EXIT_FAILURE);
 }
 
+int	ft_exec_seq(t_executer *exec, t_ast_node *node)
+{
+	exec->status = ft_exec_recursive(exec, node->left);
+	exec->status = ft_exec_recursive(exec, node->right);
+	return (exec->status);
+}
+
 int	ft_exec_recursive(t_executer *exec, t_ast_node *node)
 {
 	// printf("node->type %d\n", node->type);
@@ -122,11 +129,7 @@ int	ft_exec_recursive(t_executer *exec, t_ast_node *node)
 		return (ft_exec_or(exec, node));
 	else if (node->type == NODE_GROUP)
 		return (ft_exec_group(exec, node));
+	else if (node->type == NODE_SEQUENCE)
+		return (ft_exec_seq(exec, node));
 	return (0);
 }
-
-//mkdir test && cd test
-//cd test999 || echo WRONG
-//echo test && (ls -lah | grep msh)
-// (ls -lah && echo test)
-// (ls -lah | grep msh) && (echo test1 && echo test2)
