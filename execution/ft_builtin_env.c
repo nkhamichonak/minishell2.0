@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ft_buildin_env.c                                   :+:      :+:    :+:   */
+/*   ft_builtin_env.c                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: pkhvorov <pkhvorov@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/22 14:55:08 by pkhvorov          #+#    #+#             */
-/*   Updated: 2025/02/17 16:35:47 by pkhvorov         ###   ########.fr       */
+/*   Updated: 2025/02/25 15:59:10 by pkhvorov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ static int env_print(t_executer *exec)
 	exit (EXIT_SUCCESS);
 }
 
-int ft_buildin_env(t_executer *exec)
+int ft_builtin_env(t_executer *exec)
 {
 	pid_t		pid;
 	int			status;

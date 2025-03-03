@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ft_buildin_exit.c                                  :+:      :+:    :+:   */
+/*   ft_builtin_exit.c                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: pkhvorov <pkhvorov@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 15:57:59 by pkhvorov          #+#    #+#             */
-/*   Updated: 2025/02/18 15:39:02 by pkhvorov         ###   ########.fr       */
+/*   Updated: 2025/02/26 16:01:05 by pkhvorov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,13 +80,17 @@ int get_exit_code(char *str)
 	return (num % 256);
 }
 
-int ft_buildin_exit(char **args)
+int ft_builtin_exit(t_executer *exec, char **args)
 {
 	int exit_code;
 	
 	ft_putendl_fd("exit", 1);
 	if (args == NULL || args[1] == NULL)
+	{
+		exec->isexit = 1;
 		return (g_exit_code);
+	}
+
 	else if(args[2] != NULL)
 	{
 		ft_putendl_fd("minishell: exit: too many arguments", 2);
@@ -96,9 +100,11 @@ int ft_buildin_exit(char **args)
 	if (errno == ERANGE)
 	{
 		errno = 0;
+		exec->isexit = 1;
 		// printf("minishell: exit: %s: numeric argument required\n", args[1]);
 		ft_putendl_fd("minishell: exit: numeric argument required", 2);
 		return (2);
 	}
+	exec->isexit = 1;
 	return(exit_code);
 }
