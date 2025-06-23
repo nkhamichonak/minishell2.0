@@ -6,75 +6,31 @@
 /*   By: pkhvorov <pkhvorov@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 16:13:19 by pkhvorov          #+#    #+#             */
-/*   Updated: 2025/03/03 13:56:40 by pkhvorov         ###   ########.fr       */
+/*   Updated: 2025/04/11 13:28:05 by pkhvorov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "execution.h"
 
-static void ft_redirection_out_files(t_redirect *redirects)
+int	ft_redirection_group(t_executer *exec, t_ast_node *node)
 {
-	int	fd_out;
-	
-	while (redirects)
+	t_redirect	*redirections;
+	t_redirect	*save;
+
+	redirections = ft_reverse_redirection(node->group_redirs);
+	save = redirections;
+	while (redirections)
 	{
-		if (redirects->redir_type == REDIR_OUT)
-			{
-				fd_out = open(redirects->filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-				close(fd_out);
-			}
-		else if (redirects->redir_type == APPEND)
-			{
-				fd_out = open(redirects->filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
-				close(fd_out);
-			}
-		redirects = redirects->next;
+		if (redirections->redir_type == REDIR_OUT)
+			exec->red_status = ft_redirection_out(exec, redirections);
+		else if (redirections->redir_type == APPEND)
+			exec->red_status = ft_redirection_append(exec, redirections);
+		else if (redirections->redir_type == REDIR_IN)
+			exec->red_status = ft_redirection_in(exec, redirections);
+		else if (redirections->redir_type == HEREDOC && exec->red_status != 130)
+			exec->red_status = ft_redirection_heredoc(exec, redirections, save);
+		redirections = redirections->next;
 	}
-}
-
-static int	ft_redirection_out(t_executer *exec, t_ast_node *node)
-{
-	int	fd_out;
-	
-	fd_out = open(node->group_redirs->filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-	close(exec->out_fd);
-	exec->out_fd = fd_out;
-	if (node->group_redirs->next != NULL)
-		ft_redirection_out_files(node->group_redirs->next);
-	return (exec->status);
-}
-
-static int	ft_redirection_append(t_executer *exec, t_ast_node *node)
-{
-	int	fd_out;
-	
-	fd_out = open(node->group_redirs->filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
-	close(exec->out_fd);
-	exec->out_fd = fd_out;
-	if (node->group_redirs->next != NULL)
-		ft_redirection_out_files(node->group_redirs->next);
-	return (exec->status);
-}
-
-static int	ft_redirection_in(t_executer *exec, t_ast_node *node)
-{
-	int	fd_in;
-
-	fd_in = open(node->group_redirs->filename, O_RDONLY);
-	close(exec->in_fd);
-	exec->in_fd = fd_in;
-	return (exec->status);
-}
-
-int ft_redirection_group(t_executer *exec, t_ast_node *node)
-{
-	if (node->group_redirs->redir_type == REDIR_OUT)
-		ft_redirection_out(exec, node);
-	if (node->group_redirs->redir_type == APPEND)
-		ft_redirection_append(exec, node);
-	if (node->group_redirs->redir_type == REDIR_IN)
-		ft_redirection_in(exec, node);
-	if (node->group_redirs->redir_type == HEREDOC)
-		ft_redirection_heredoc(exec, node);
-	return (exec->status);
+	ft_free_redirects(save);
+	return (exec->red_status);
 }

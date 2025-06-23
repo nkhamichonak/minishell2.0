@@ -3,14 +3,25 @@
 /*                                                        :::      ::::::::   */
 /*   build_ast.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: natallia <natallia@student.42.fr>          +#+  +:+       +#+        */
+/*   By: nkhamich <nkhamich@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/04 16:19:27 by nkhamich          #+#    #+#             */
-/*   Updated: 2025/02/09 10:50:19 by natallia         ###   ########.fr       */
+/*   Updated: 2025/04/07 13:35:48 by nkhamich         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "parser.h"
+
+bool	contains_group(t_token *token, t_token *end)
+{
+	while (token != end)
+	{
+		if (token->type == PAREN_OPEN)
+			return (true);
+		token = token->next;
+	}
+	return (false);
+}
 
 t_ast_node	*split_at_operator(t_token *start, t_token *end, int *status)
 {

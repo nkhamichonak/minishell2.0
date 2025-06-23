@@ -6,7 +6,7 @@
 /*   By: pkhvorov <pkhvorov@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/10 15:03:54 by pkhvorov          #+#    #+#             */
-/*   Updated: 2025/02/11 15:40:21 by pkhvorov         ###   ########.fr       */
+/*   Updated: 2025/04/10 11:48:37 by pkhvorov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,14 +42,69 @@ void	free_double_array(char **array)
 	}
 }
 
-void	print_darray(char **array)
+int	handle_redirection_error(char *file)
 {
-	int	i;
+	if (errno == ENOENT)
+	{
+		ft_putstr_fd("minishell: ", 2);
+		ft_putstr_fd(file, 2);
+		ft_putendl_fd(": no such file or directory", 2);
+	}
+	else if (errno == EACCES)
+	{
+		ft_putstr_fd("minishell: ", 2);
+		ft_putstr_fd(file, 2);
+		ft_putendl_fd(": permission denied", 2);
+	}
+	else if (errno == EISDIR)
+	{
+		ft_putstr_fd("minishell: ", 2);
+		ft_putstr_fd(file, 2);
+		ft_putendl_fd(": Is a directory", 2);
+	}
+	else
+	{
+		ft_putstr_fd("minishell: ", 2);
+		ft_putstr_fd(file, 2);
+		ft_putendl_fd(": something goes wrong", 2);
+	}
+	return (1);
+}
 
-	i = 0;
-	while (array[i] != NULL)
-		{
-			printf("%s\n", array[i]);
-			i++;
-		}
+int	handle_cd_error(char *dir)
+{
+	if (errno == ENOENT)
+	{
+		ft_putstr_fd("minishell: ", 2);
+		ft_putstr_fd(dir, 2);
+		ft_putendl_fd(": no such file or directory", 2);
+	}
+	else if (errno == EACCES)
+	{
+		ft_putstr_fd("minishell: ", 2);
+		ft_putstr_fd(dir, 2);
+		ft_putendl_fd(": permission denied", 2);
+	}
+	else if (errno == ENOTDIR)
+	{
+		ft_putstr_fd("minishell: ", 2);
+		ft_putstr_fd(dir, 2);
+		ft_putendl_fd(": not a directory", 2);
+	}
+	else
+	{
+		ft_putstr_fd("minishell: ", 2);
+		ft_putstr_fd(dir, 2);
+		ft_putendl_fd(": something goes wrong", 2);
+	}
+	return (1);
+}
+
+int	check_limit(int sign, unsigned long long number, int count)
+{
+	if ((sign == 1 && number > LLONG_MAX) \
+		|| (sign == -1 && number > -(unsigned long long)LLONG_MIN)
+		|| count > 19)
+		return (1);
+	return (0);
 }

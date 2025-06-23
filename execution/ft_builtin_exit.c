@@ -3,31 +3,41 @@
 /*                                                        :::      ::::::::   */
 /*   ft_builtin_exit.c                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: pkhvorov <pkhvorov@student.codam.nl>       +#+  +:+       +#+        */
+/*   By: natallia <natallia@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 15:57:59 by pkhvorov          #+#    #+#             */
-/*   Updated: 2025/02/26 16:01:05 by pkhvorov         ###   ########.fr       */
+/*   Updated: 2025/04/09 20:06:44 by natallia         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "execution.h"
 
-static int	check_limit(int sign, unsigned long long number)
-{
-	
-	if ((sign == 1 && number > LLONG_MAX) \
-		|| (sign == -1 && number > -(unsigned long long)LLONG_MIN))
-		return (1);
-	return (0);
-}
-
-long long	ft_atoll_with_check(const char *str)
+static long long	parse_digits_with_check(const char *str, int sign, int i)
 {
 	unsigned long long	number;
-	int			i;
-	int			sign;
+	int					count;
 
 	number = 0;
+	count = 0;
+	while (str[i] != '\0' && str[i] >= 48 && str[i] <= 57)
+	{
+		number = number * 10 + (str[i] - '0');
+		count++;
+		if (check_limit(sign, number, count))
+		{
+			errno = ERANGE;
+			return (errno);
+		}
+		i++;
+	}
+	return (sign * number);
+}
+
+static long long	ft_atoll_with_check(const char *str)
+{
+	int					i;
+	int					sign;
+
 	i = 0;
 	sign = 1;
 	while ((str[i] >= 9 && str[i] <= 13) || str[i] == 32)
@@ -40,25 +50,13 @@ long long	ft_atoll_with_check(const char *str)
 			sign = -1;
 		i++;
 	}
-	while (str[i] != '\0' && str[i] >= 48 && str[i] <= 57)
-	{
-		number = number * 10;
-		number = number + str[i] - 48;
-		if (check_limit(sign, number) == 1)
-			{
-			errno = ERANGE;
-			return (errno); 
-			}
-		i++;
-	}
-	return (sign * number);
+	return (parse_digits_with_check(str, sign, i));
 }
 
-int get_exit_code(char *str)
+static int	get_exit_code(char *str)
 {
-	int	i;
-	long long int	num; //-9223372036854775808 : 9223372036854775807
-// bash: line 1: exit: 9223372036854775808: numeric argument required
+	int				i;
+	long long int	num;
 
 	i = 0;
 	while (ft_isspace(str[i]) != 0)
@@ -69,42 +67,55 @@ int get_exit_code(char *str)
 		i++;
 	while (str[i] != '\0')
 	{
-		if (ft_isdigit(str[i]) == 0) //bash: line 1: exit: 922t: numeric argument required
-			{
+		if (ft_isdigit(str[i]) == 0)
+		{
 			errno = ERANGE;
-			return (errno); 
-			}
+			return (errno);
+		}
 		i++;
 	}
 	num = ft_atoll_with_check(str);
 	return (num % 256);
 }
 
-int ft_builtin_exit(t_executer *exec, char **args)
+static int	handle_exit_error(t_executer *exec, char **args)
 {
-	int exit_code;
-	
-	ft_putendl_fd("exit", 1);
-	if (args == NULL || args[1] == NULL)
+	if (check_int(args[1]))
 	{
+		ft_putstr_fd("minishell: exit: ", 2);
+		ft_putstr_fd(args[1], 2);
+		ft_putendl_fd(": numeric argument required", 2);
 		exec->isexit = 1;
-		return (g_exit_code);
+		return (2);
 	}
-
-	else if(args[2] != NULL)
+	else
 	{
 		ft_putendl_fd("minishell: exit: too many arguments", 2);
 		return (EXIT_FAILURE);
 	}
+}
+
+int	ft_builtin_exit(t_executer *exec, char **args)
+{
+	int	exit_code;
+
+	if (args == NULL || args[1] == NULL)
+	{
+		exec->isexit = 1;
+		return (exec->vars->exit_status);
+	}
+	else if (args[1][0] == '\0' || args[2] != NULL)
+		return (handle_exit_error(exec, args));
 	exit_code = get_exit_code(args[1]);
 	if (errno == ERANGE)
 	{
 		errno = 0;
 		exec->isexit = 1;
-		// printf("minishell: exit: %s: numeric argument required\n", args[1]);
-		ft_putendl_fd("minishell: exit: numeric argument required", 2);
+		ft_putstr_fd("minishell: exit: ", 2);
+		ft_putstr_fd(args[1], 2);
+		ft_putendl_fd(": numeric argument required", 2);
 		return (2);
 	}
 	exec->isexit = 1;
-	return(exit_code);
+	return (exit_code);
 }

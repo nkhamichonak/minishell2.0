@@ -6,75 +6,91 @@
 /*   By: pkhvorov <pkhvorov@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 16:13:19 by pkhvorov          #+#    #+#             */
-/*   Updated: 2025/03/03 13:56:02 by pkhvorov         ###   ########.fr       */
+/*   Updated: 2025/04/11 12:24:25 by pkhvorov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "execution.h"
 
-static void ft_redirection_out_files(t_redirect *redirects)
+int	ft_redirection_out(t_executer *exec, t_redirect *redirects)
 {
 	int	fd_out;
-	
-	while (redirects)
-	{
-		if (redirects->redir_type == REDIR_OUT)
-			{
-				fd_out = open(redirects->filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-				close(fd_out);
-			}
-		else if (redirects->redir_type == APPEND)
-			{
-				fd_out = open(redirects->filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
-				close(fd_out);
-			}
-		redirects = redirects->next;
-	}
-}
 
-static int	ft_redirection_out(t_executer *exec, t_ast_node *node)
-{
-	int	fd_out;
-	
-	fd_out = open(node->cmd->redirects->filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	fd_out = open(redirects->filename, \
+		O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	if (fd_out == -1)
+		return (handle_redirection_error(redirects->filename));
 	close(exec->out_fd);
 	exec->out_fd = fd_out;
-	if (node->cmd->redirects->next != NULL)
-		ft_redirection_out_files(node->cmd->redirects->next);
-	return (exec->status);
+	return (0);
 }
 
-static int	ft_redirection_append(t_executer *exec, t_ast_node *node)
+int	ft_redirection_append(t_executer *exec, t_redirect *redirects)
 {
 	int	fd_out;
-	
-	fd_out = open(node->cmd->redirects->filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
+
+	fd_out = open(redirects->filename, \
+		O_WRONLY | O_CREAT | O_APPEND, 0644);
+	if (fd_out == -1)
+		return (handle_redirection_error(redirects->filename));
 	close(exec->out_fd);
 	exec->out_fd = fd_out;
-	if (node->cmd->redirects->next != NULL)
-		ft_redirection_out_files(node->cmd->redirects->next);
-	return (exec->status);
+	return (0);
 }
 
-static int	ft_redirection_in(t_executer *exec, t_ast_node *node)
+int	ft_redirection_in(t_executer *exec, t_redirect *redirects)
 {
 	int	fd_in;
 
-	fd_in = open(node->cmd->redirects->filename, O_RDONLY);
+	fd_in = open(redirects->filename, O_RDONLY);
+	if (fd_in == -1)
+		return (handle_redirection_error(redirects->filename));
 	close(exec->in_fd);
 	exec->in_fd = fd_in;
-	return (exec->status);
+	return (0);
 }
 
-int ft_redirection(t_executer *exec, t_ast_node *node)
+t_redirect	*ft_reverse_redirection(t_redirect *redirects)
 {
-	if (node->cmd->redirects->redir_type == REDIR_OUT)
-		ft_redirection_out(exec, node);
-	if (node->cmd->redirects->redir_type == APPEND)
-		ft_redirection_append(exec, node);
-	if (node->cmd->redirects->redir_type == REDIR_IN)
-		ft_redirection_in(exec, node);
-	if (node->cmd->redirects->redir_type == HEREDOC)
-		ft_redirection_heredoc(exec, node);
-	return (exec->status);
+	t_redirect	*redir;
+	t_redirect	*temp;
+
+	redir = NULL;
+	while (redirects)
+	{
+		temp = malloc(sizeof(t_redirect));
+		if (temp == NULL)
+		{
+			perror("malloc");
+			exit(EXIT_FAILURE);
+		}
+		*temp = *redirects;
+		temp->next = redir;
+		redir = temp;
+		redirects = redirects->next;
+	}
+	return (redir);
+}
+
+int	ft_redirection(t_executer *exec, t_ast_node *node)
+{
+	t_redirect	*redirections;
+	t_redirect	*save;
+
+	redirections = ft_reverse_redirection(node->cmd->redirects);
+	save = redirections;
+	while (redirections)
+	{
+		if (redirections->redir_type == REDIR_OUT)
+			exec->red_status = ft_redirection_out(exec, redirections);
+		else if (redirections->redir_type == APPEND)
+			exec->red_status = ft_redirection_append(exec, redirections);
+		else if (redirections->redir_type == REDIR_IN)
+			exec->red_status = ft_redirection_in(exec, redirections);
+		else if (redirections->redir_type == HEREDOC && exec->red_status != 130)
+			exec->red_status = ft_redirection_heredoc(exec, redirections, save);
+		redirections = redirections->next;
+	}
+	ft_free_redirects(save);
+	return (exec->red_status);
 }

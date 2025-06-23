@@ -6,19 +6,21 @@
 /*   By: pkhvorov <pkhvorov@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/22 15:26:28 by pkhvorov          #+#    #+#             */
-/*   Updated: 2025/02/25 15:59:10 by pkhvorov         ###   ########.fr       */
+/*   Updated: 2025/04/11 13:32:16 by pkhvorov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "execution.h"
 
-static int is_n_key(char *arg)
+static	int	is_n_key(char *arg)
 {
 	int	i;
 
 	if (arg[0] != '-')
 		return (0);
 	i = 1;
+	if (arg[i] == '\0')
+		return (0);
 	while (arg[i] != '\0' && arg[i] == 'n')
 		i++;
 	if (arg[i] == '\0')
@@ -28,16 +30,13 @@ static int is_n_key(char *arg)
 
 static void	echo_print(t_executer *exec, char **args, int n_key, int i)
 {
-	dup2(exec->in_fd, STDIN_FILENO);
-	dup2(exec->out_fd, STDOUT_FILENO);
-	close(exec->in_fd);
-	close(exec->out_fd);
-	
+	safe_redirect_fds(exec);
 	if (args[i] == NULL)
 	{
 		if (n_key == 0)
 			ft_putchar_fd('\n', STDOUT_FILENO);
-		return ;
+		ft_exec_clean(exec);
+		exit (EXIT_SUCCESS);
 	}
 	while (args[i] != NULL)
 	{
@@ -48,6 +47,7 @@ static void	echo_print(t_executer *exec, char **args, int n_key, int i)
 			ft_putchar_fd('\n', STDOUT_FILENO);
 		i++;
 	}
+	ft_exec_clean(exec);
 	exit (EXIT_SUCCESS);
 }
 

@@ -6,7 +6,7 @@
 /*   By: pkhvorov <pkhvorov@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 16:19:12 by pkhvorov          #+#    #+#             */
-/*   Updated: 2025/03/03 16:54:38 by pkhvorov         ###   ########.fr       */
+/*   Updated: 2025/04/11 12:47:21 by pkhvorov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,17 +14,21 @@
 
 int	remove_env_var(t_executer *exec, int index)
 {
-	if (index > env_count(exec->env))
+	if (index > env_count(exec->vars->global_vars))
 		return (EXIT_FAILURE);
-	free_ptr(exec->env[index]);
-	while (exec->env[index + 1] != NULL)
+	free_ptr(exec->vars->global_vars[index]);
+	while (exec->vars->global_vars[index + 1] != NULL)
 	{
-		exec->env[index] = ft_strdup(exec->env[index + 1]);
-		free_ptr(exec->env[index + 1]);
+		exec->vars->global_vars[index] = \
+			ft_strdup(exec->vars->global_vars[index + 1]);
+		if (exec->vars->global_vars[index] == NULL)
+			return (EXIT_FAILURE);
+		free_ptr(exec->vars->global_vars[index + 1]);
 		index++;
 	}
-	exec->env = reallocate_env_nodes(exec, index);
-	if (exec->env == NULL)
+	exec->vars->global_vars = \
+		reallocate_env_nodes(exec->vars->global_vars, index);
+	if (exec->vars->global_vars == NULL)
 		return (EXIT_FAILURE);
 	return (EXIT_SUCCESS);
 }
@@ -37,14 +41,9 @@ int	ft_builtin_unset(t_executer *exec, char **args)
 	i = 1;
 	while (args[i] != NULL)
 	{
-		if (check_var(args[i]) == 1 || ft_strchr(args[i], '=') != NULL)
-			return (EXIT_FAILURE);
-		else
-		{
-			index = get_env_index(exec->env, args[i]);
-			if (index != -1)
-				remove_env_var(exec, index);
-		}
+		index = get_env_index(exec->vars->global_vars, args[i]);
+		if (index != -1)
+			remove_env_var(exec, index);
 		i++;
 	}
 	return (EXIT_SUCCESS);

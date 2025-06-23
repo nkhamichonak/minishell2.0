@@ -1,34 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ft_builtin_pwd.c                                   :+:      :+:    :+:   */
+/*   signals.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: pkhvorov <pkhvorov@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/22 14:40:12 by pkhvorov          #+#    #+#             */
-/*   Updated: 2025/04/11 13:33:02 by pkhvorov         ###   ########.fr       */
+/*   Created: 2025/03/07 12:51:48 by pkhvorov          #+#    #+#             */
+/*   Updated: 2025/04/09 18:18:06 by pkhvorov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "execution.h"
 
-int	ft_builtin_pwd(t_executer *exec)
+void	restore_signals(void)
 {
-	pid_t	pid;
-	int		status;
+	signal(SIGINT, SIG_DFL);
+	signal(SIGQUIT, SIG_DFL);
+}
 
-	pid = fork();
-	if (pid == -1)
-		return (EXIT_FAILURE);
-	else if (pid == 0)
-	{
-		safe_redirect_fds(exec);
-		ft_putendl_fd(exec->wd, 1);
-		ft_exec_clean(exec);
-		exit (EXIT_SUCCESS);
-	}
-	waitpid(pid, &status, 0);
-	if (WIFEXITED(status))
-		return (WEXITSTATUS(status));
-	return (EXIT_FAILURE);
+void	ignore_signals(void)
+{
+	signal(SIGINT, SIG_IGN);
+	signal(SIGQUIT, SIG_IGN);
 }

@@ -6,7 +6,7 @@
 /*   By: natallia <natallia@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 12:16:39 by nkhamich          #+#    #+#             */
-/*   Updated: 2025/02/10 14:24:38 by natallia         ###   ########.fr       */
+/*   Updated: 2025/04/13 12:18:04 by natallia         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,18 +41,25 @@ static char	**reallocate_args(t_command *cmd, char *arg, int count)
 	return (new_args);
 }
 
-int	add_argument(t_command *cmd, char *arg)
+int	add_argument(t_command *cmd, t_token **token, t_token *end)
 {
 	int		count;
 	char	**new_args;
+	char	*concatenated_arg;
+	bool	quoted;
 
+	quoted = false;
+	concatenated_arg = concatenate_tokens(token, end, &quoted);
+	if (concatenated_arg == NULL)
+		return (PARSER_CRITICAL_ERROR);
 	count = 0;
 	if (cmd->args)
 	{
 		while (cmd->args[count])
 			count++;
 	}
-	new_args = reallocate_args(cmd, arg, count);
+	new_args = reallocate_args(cmd, concatenated_arg, count);
+	free(concatenated_arg);
 	if (new_args == NULL)
 		return (PARSER_CRITICAL_ERROR);
 	free_args(&(cmd->args));

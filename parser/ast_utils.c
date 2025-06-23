@@ -6,7 +6,7 @@
 /*   By: nkhamich <nkhamich@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:54:42 by natallia          #+#    #+#             */
-/*   Updated: 2025/02/25 09:30:26 by nkhamich         ###   ########.fr       */
+/*   Updated: 2025/04/01 12:54:34 by nkhamich         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ t_token	*get_separator(t_token *token, t_token *end)
 	sep = NULL;
 	while (token != end)
 	{
-		if (token->type == NEWLINE || token->type == SEMICOLON)
+		if (token->type == SEMICOLON)
 		{
 			sep = token;
 			break ;

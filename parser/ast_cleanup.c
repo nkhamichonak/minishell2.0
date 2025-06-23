@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ast_free.c                                         :+:      :+:    :+:   */
+/*   ast_cleanup.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: natallia <natallia@student.42.fr>          +#+  +:+       +#+        */
+/*   By: nkhamich <nkhamich@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/31 10:40:39 by natallia          #+#    #+#             */
-/*   Updated: 2025/02/09 10:54:33 by natallia         ###   ########.fr       */
+/*   Updated: 2025/04/09 15:55:21 by nkhamich         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,6 +63,17 @@ void	free_ast(t_ast_node **node)
 	free_ast(&(*node)->right);
 	free_ast(&(*node)->subtree);
 	free_command(&(*node)->cmd);
+	free_redirects(&(*node)->group_redirs);
+	free(*node);
+	*node = NULL;
+}
+
+void	free_ast_node(t_ast_node **node)
+{
+	if (!node || !*node)
+		return ;
+	free_command(&(*node)->cmd);
+	free_redirects(&(*node)->group_redirs);
 	free(*node);
 	*node = NULL;
 }

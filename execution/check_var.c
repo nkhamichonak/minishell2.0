@@ -1,34 +1,45 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ft_builtin_pwd.c                                   :+:      :+:    :+:   */
+/*   check_var.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: pkhvorov <pkhvorov@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/22 14:40:12 by pkhvorov          #+#    #+#             */
-/*   Updated: 2025/04/11 13:33:02 by pkhvorov         ###   ########.fr       */
+/*   Created: 2025/01/24 16:19:12 by pkhvorov          #+#    #+#             */
+/*   Updated: 2025/04/11 13:43:23 by pkhvorov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "execution.h"
 
-int	ft_builtin_pwd(t_executer *exec)
+int	check_int(char *var)
 {
-	pid_t	pid;
-	int		status;
+	int	i;
 
-	pid = fork();
-	if (pid == -1)
-		return (EXIT_FAILURE);
-	else if (pid == 0)
+	i = 0;
+	if (!var || !ft_isdigit(var[0]))
+		return (1);
+	while (var[i] != '\0')
 	{
-		safe_redirect_fds(exec);
-		ft_putendl_fd(exec->wd, 1);
-		ft_exec_clean(exec);
-		exit (EXIT_SUCCESS);
+		if (!ft_isdigit(var[i]))
+			return (1);
+		i++;
 	}
-	waitpid(pid, &status, 0);
-	if (WIFEXITED(status))
-		return (WEXITSTATUS(status));
-	return (EXIT_FAILURE);
+	return (0);
+}
+
+int	check_var(char *var)
+{
+	int	i;
+
+	if (!var || (!ft_isalpha(var[0]) && var[0] != '_'))
+		return (1);
+	i = 1;
+	while (var[i] != '\0' && var[i] != '=')
+	{
+		if (!ft_isalnum(var[i]) && var[i] != '_')
+			return (1);
+		i++;
+	}
+	return (0);
 }

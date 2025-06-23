@@ -6,21 +6,19 @@
 /*   By: natallia <natallia@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/21 10:41:57 by natallia          #+#    #+#             */
-/*   Updated: 2025/03/03 12:47:44 by natallia         ###   ########.fr       */
+/*   Updated: 2025/04/13 12:12:33 by natallia         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef PARSER_H
 # define PARSER_H
 
-# include "../lexer/lexer.h"
-# include <stdio.h>
+# include "tokens.h"
+# include <stdbool.h>
 
 # define PARSER_DEFAULT 0
 # define PARSER_ERROR 1
 # define PARSER_CRITICAL_ERROR 2
-
-// # define METACHAR ";|$#<>=\'\"()&"
 
 typedef enum e_node_type
 {
@@ -36,6 +34,7 @@ typedef struct s_redirect
 {
 	char				*filename;
 	t_token_type		redir_type;
+	bool				quoted;
 	struct s_redirect	*next;
 }	t_redirect;
 
@@ -58,31 +57,30 @@ typedef struct s_ast_node
 	struct s_ast_node	*subtree;
 }	t_ast_node;
 
-void		parse_input(t_token *tokens, t_ast_node **ast, int *status);
+// general AST-building toolkit
 t_ast_node	*build_ast(t_token *start, t_token *end, int *status);
+t_token		*get_separator(t_token *token, t_token *last);
+t_token		*get_main_operator(t_token *token, t_token *last);
 t_ast_node	*create_ast_node(t_node_type type);
+t_node_type	get_node_type(t_token_type token_type);
+void		print_ast(t_ast_node *node, int level);
+void		free_ast(t_ast_node **node);
+void		free_ast_node(t_ast_node **node);
+
+// command-level parsing and utils
 t_ast_node	*process_command(t_token *token, t_token *last, int *status);
 bool		is_valid_assignment(t_token *token);
 int			add_assignment(t_ast_node *node, t_token **token, t_token *end);
+bool		is_valid_redirection(t_token *token, int *status);
+int			add_cmd_redir(t_ast_node *node, t_token **token, t_token *end);
+int			add_argument(t_command *cmd, t_token **token, t_token *end);
+void		free_args(char ***args);
 
-// parentheses
+// parentheses group-level parsing and utils
+bool		contains_group(t_token *token, t_token *last);
+t_ast_node	*process_group(t_token *start, t_token *end, int *status);
 t_token		*skip_open_paren(t_token *token, t_token *last);
 t_token		*get_close_paren(t_token *token, t_token *last);
-bool		contains_group(t_token *token, t_token *last);
-
-void		free_args(char ***args);
-int			add_argument(t_command *cmd, char *arg);
-
-t_ast_node	*process_group(t_token *start, t_token *end, int *status);
-
-t_token		*get_main_operator(t_token *token, t_token *last);
-t_token		*get_separator(t_token *token, t_token *last);
-t_node_type	get_node_type(t_token_type token_type);
-
-void		free_ast(t_ast_node **node);
-void		print_ast(t_ast_node *node, int level);
-
-bool		is_valid_redirection(t_token *token, int *status);
-int			add_redirection(t_ast_node *node, t_token **token, bool group);
+int			add_grp_redir(t_ast_node *node, t_token **token, t_token *end);
 
 #endif

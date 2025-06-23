@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   mshell_start.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: pkhvorov <pkhvorov@student.codam.nl>       +#+  +:+       +#+        */
+/*   By: nkhamich <nkhamich@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/03 12:41:27 by nkhamich          #+#    #+#             */
-/*   Updated: 2025/03/03 17:12:36 by pkhvorov         ###   ########.fr       */
+/*   Updated: 2025/04/09 16:45:10 by nkhamich         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,17 +14,11 @@
 
 t_mshell_phase	mshell_start(t_mshell *mshell, char **envp)
 {
-	//execution
-	// mshell->exec.env = get_envp_copy(envp);
-	// if (mshell->exec.env == NULL)
-	// 	return (MINISHELL_CLEANUP);
-	if (ft_exec_init(&mshell->exec, envp) == EXIT_FAILURE)
+	if (initialise_vars(&mshell->vars, envp) != ENVP_DEFAULT)
 		return (MINISHELL_CLEANUP);
-	//common
+	if (ft_exec_init(&mshell->exec, &mshell->vars) == EXIT_FAILURE)
+		return (MINISHELL_CLEANUP);
 	mshell->input = NULL;
-	mshell->envp_copy = get_envp_copy(envp);
-	if (mshell->envp_copy == NULL)
-		return (MINISHELL_CLEANUP);
 	mshell->tokens = NULL;
 	mshell->ast = NULL;
 	mshell->prompt = "minishell> ";

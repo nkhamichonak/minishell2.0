@@ -6,18 +6,19 @@
 /*   By: pkhvorov <pkhvorov@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/07 15:02:50 by pkhvorov          #+#    #+#             */
-/*   Updated: 2025/02/25 17:19:53 by pkhvorov         ###   ########.fr       */
+/*   Updated: 2025/04/11 16:51:12 by pkhvorov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "execution.h"
 
-static void	fn_left_child(int *pipefd, t_executer *exec, t_ast_node *node)
+static void	ft_left_child(int *pipefd, t_executer *exec, t_ast_node *node)
 {
 	close(pipefd[0]);
 	close(exec->out_fd);
 	exec->out_fd = pipefd[1];
-	ft_exec_recursive(exec, node->left);
+	restore_signals();
+	exec->vars->exit_status = ft_exec_recursive(exec, node->left);
 	if (exec->in_fd >= 0)
 	{
 		close(exec->in_fd);
@@ -28,16 +29,17 @@ static void	fn_left_child(int *pipefd, t_executer *exec, t_ast_node *node)
 		close(exec->out_fd);
 		exec->out_fd = -1;
 	}
-	exit(exec->status);
+	ft_exec_clean(exec);
+	exit(exec->vars->exit_status);
 }
 
-static void	fn_right_child(int *pipefd, t_executer *exec, t_ast_node *node)
+static void	ft_right_child(int *pipefd, t_executer *exec, t_ast_node *node)
 {
 	close(pipefd[1]);
 	close(exec->in_fd);
 	exec->in_fd = pipefd[0];
-
-	ft_exec_recursive(exec, node->right);
+	restore_signals();
+	exec->vars->exit_status = ft_exec_recursive(exec, node->right);
 	if (exec->in_fd >= 0)
 	{
 		close(exec->in_fd);
@@ -48,7 +50,8 @@ static void	fn_right_child(int *pipefd, t_executer *exec, t_ast_node *node)
 		close(exec->out_fd);
 		exec->out_fd = -1;
 	}
-	exit(exec->status);
+	ft_exec_clean(exec);
+	exit(exec->vars->exit_status);
 }
 
 int	ft_exec_pipe(t_executer *exec, t_ast_node *node)
@@ -57,22 +60,24 @@ int	ft_exec_pipe(t_executer *exec, t_ast_node *node)
 	int		pipefd[2];
 	int		status;
 
+	ignore_signals();
 	if (pipe(pipefd) == -1)
 		return (-1);
 	pid[0] = fork();
 	if (pid[0] == -1)
 		return (-1);
 	if (pid[0] == 0)
-		fn_left_child(pipefd, exec, node);
+		ft_left_child(pipefd, exec, node);
 	pid[1] = fork();
 	if (pid[1] == -1)
 		return (-1);
 	if (pid[1] == 0)
-		fn_right_child(pipefd, exec, node);
+		ft_right_child(pipefd, exec, node);
 	close(pipefd[0]);
 	close(pipefd[1]);
 	waitpid(pid[0], NULL, 0);
 	waitpid(pid[1], &status, 0);
+	ignore_ctrl_c();
 	if (WIFEXITED(status))
 		return (WEXITSTATUS(status));
 	return (1);

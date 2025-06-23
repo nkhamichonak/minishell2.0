@@ -6,7 +6,7 @@
 /*   By: nkhamich <nkhamich@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/20 12:09:54 by natallia          #+#    #+#             */
-/*   Updated: 2025/02/17 13:53:50 by nkhamich         ###   ########.fr       */
+/*   Updated: 2025/03/28 13:24:21 by nkhamich         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,8 +31,6 @@ static void	copy_quoted_str(const char **input, char *temp, char quote)
 	idx = 0;
 	while (**input != quote && **input != '\0')
 	{
-		// if (str[*i] == '$')
-		// 	expand_variable(&str[*i], temp, &idx, i);
 		temp[idx] = **input;
 		idx++;
 		(*input)++;

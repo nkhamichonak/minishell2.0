@@ -6,7 +6,7 @@
 /*   By: pkhvorov <pkhvorov@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/10 15:04:51 by pkhvorov          #+#    #+#             */
-/*   Updated: 2025/03/03 13:28:36 by pkhvorov         ###   ########.fr       */
+/*   Updated: 2025/04/11 13:12:03 by pkhvorov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ int	env_count(char **env)
 	i = 0;
 	while (env[i] != NULL)
 		i++;
-	return(i);
+	return (i);
 }
 
 int	init_env(t_executer *exec, char **env)
@@ -27,20 +27,20 @@ int	init_env(t_executer *exec, char **env)
 	int	i;
 
 	i = 0;
-	exec->env = ft_calloc(env_count(env) + 1, sizeof(char *));
-	if (exec->env == NULL)
+	exec->vars->global_vars = ft_calloc(env_count(env) + 1, sizeof(char *));
+	if (exec->vars->global_vars == NULL)
 		return (0);
 	while (env[i] != NULL)
 	{
-		exec->env[i] = ft_strdup(env[i]);
-		if (exec->env[i] == NULL)
+		exec->vars->global_vars[i] = ft_strdup(env[i]);
+		if (exec->vars->global_vars[i] == NULL)
 			return (0);
 		i++;
 	}
 	return (i);
 }
 
-int get_env_index(char **env, char *var)
+int	get_env_index(char **env, char *var)
 {
 	int		i;
 	char	*temp;
@@ -88,14 +88,18 @@ int	init_wds(t_executer *exec)
 {
 	char	buffer[PATH_MAX];
 	char	*wd;
+	char	*old_pwd;
 
 	wd = getcwd(buffer, PATH_MAX);
+	if (wd == NULL)
+		return (EXIT_FAILURE);
 	exec->wd = ft_strdup(wd);
 	if (exec->wd == NULL)
 		return (EXIT_FAILURE);
-	if (get_env_var(exec->env, "OLDPWD") != NULL)
+	old_pwd = get_env_var(exec->vars->global_vars, "OLDPWD");
+	if (old_pwd != NULL)
 	{
-		exec->old_wd = ft_strdup(get_env_var(exec->env, "OLDPWD"));
+		exec->old_wd = ft_strdup(old_pwd);
 		if (exec->old_wd == NULL)
 			return (EXIT_FAILURE);
 	}
